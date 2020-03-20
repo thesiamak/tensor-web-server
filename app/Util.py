@@ -227,6 +227,7 @@ class Data(BaseApi):
                 for file in os.listdir(code_dir):
                     os.remove(os.path.join(code_dir, file))
 
+                os.removedirs(code_dir)
                 self.message = 'Object %s removed.' % code
                 self.status = True
 
