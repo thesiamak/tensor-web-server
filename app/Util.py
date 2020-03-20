@@ -1,9 +1,17 @@
 import sys
+import cv2
 import os
 import threading
 import requests
 import validators
-from flask import request
+import urllib
+import urllib3
+from contextlib import closing
+from zipfile import ZipFile
+from shutil import copy2
+from app import Dictionary as Dic
+from app import app
+from flask import request, send_from_directory
 from datetime import datetime
 
 # insert at 1, 0 is the script path (or '' in REPL)
@@ -18,7 +26,7 @@ class BaseApi:
     status = False
     message = ""
 
-    def get_result(self):
+    def _get_result(self):
         return {'status': self.status, 'message': self.message, 'data': self.data}
 
 
@@ -35,8 +43,9 @@ class Query(BaseApi):
                 dir_path = 'res/queries/' + datetime.today().strftime('%Y-%m-%d')
                 if not os.path.isdir(dir_path):
                     os.mkdir(dir_path)
-                self.target_file_path = dir_path + "/" + datetime.today().strftime('%H_%M_%S_%f') + '.' + url.split('.')[
-                    len(url.split('.')) - 1]
+                self.target_file_path = dir_path + "/" + datetime.today().strftime('%H_%M_%S_%f') + '.' + \
+                                        url.split('.')[
+                                            len(url.split('.')) - 1]
                 tmp_file = open(self.target_file_path, 'wb')
                 tmp_file.write(stream.content)
                 tmp_file.close()
@@ -51,7 +60,7 @@ class Query(BaseApi):
             self.message = "Process has done detection"
             self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
 
-        return self.get_result()
+        return self._get_result()
 
 
 class Train(BaseApi):
@@ -60,7 +69,7 @@ class Train(BaseApi):
         threading.Thread(target=initiator.run).start()
         self.status = True
         self.message = "training started ..."
-        return self.get_result()
+        return self._get_result()
 
 
 class Status(BaseApi):
@@ -82,7 +91,7 @@ class Status(BaseApi):
         self.message = "Details generated successfully"
         self.status = True
 
-        return self.get_result()
+        return self._get_result()
 
     def get_data_json(self):
         dir_json = []
@@ -121,3 +130,114 @@ class Status(BaseApi):
             if start == -1: return
             yield start
             start += len(sub)  # use start += 1 to find overlapping matches
+
+
+class Data(BaseApi):
+    def get(self):
+        code = request.args.get("code")
+        if code is not None:
+
+            target_dir = os.path.join(os.path.dirname(app.instance_path), app.config['DATA_DIR'], code)
+            zip_file_path = os.path.join(os.path.dirname(app.instance_path), app.config['TEMP_DIR'])
+
+            if os.path.isdir(target_dir):
+                # with ZipFile(os.path.dirname(app.instance_path) + '/res/tmp/%s.zip' % code, 'w') as zipObj2:
+                with ZipFile(app.config['TEMP_DIR'] + '/%s.zip' % code, 'w') as zipObj2:
+                    for file in os.listdir(target_dir):
+                        file = os.path.join(app.config['DATA_DIR'], code, file)
+                        zipObj2.write(file)
+
+                return send_from_directory(directory=zip_file_path, filename=code+'.zip')
+
+            else:
+                self.message = Dic.Api.NOT_FOUND_RESOURCE
+                self.status = False
+        else:
+            self.message = Dic.Api.INVALID_PARAM
+            self.status = False
+
+        return self._get_result()
+
+    def post(self):
+        # download zip
+        file_url = request.values.get('zip_url')
+        code = request.values.get('code')
+
+        if file_url is not None and code is not None:
+            code_dir = os.path.join(app.config['DATA_DIR'], code)
+            self.data['rejected_resources'] = []
+            self.data['invalid_xml'] = []
+            validation = validators.url(file_url)
+            if validation:
+                file_path = os.path.join(app.config['TEMP_DIR'], datetime.today().strftime('%H_%M_%S') + '.' + \
+                                         file_url.split('.')[len(file_url.split('.')) - 1])
+
+                self.download_file(file_url, file_path)
+
+                # unzip
+                with ZipFile(file_path, 'r') as zip_ref:
+                    zip_ref.extractall(app.config["TEMP_DIR"])
+
+                # make dir in images
+
+                if not os.path.isdir(code_dir):
+                    os.mkdir(code_dir)
+                for image in os.listdir(os.path.join(app.config['TEMP_DIR'], code)):
+                    # check files and copy
+                    if os.path.splitext(image)[1] == '.jpg':
+                        height, width, channel = cv2.imread(os.path.join(app.config['TEMP_DIR'], code, image)).shape
+                        if height > 300 and width > 300:
+                            xml_file_path = os.path.join(app.config['TEMP_DIR'], code, os.path.splitext(image)[0] + '.xml')
+                            if os.path.isfile(xml_file_path):
+                                copy2(os.path.join(app.config['TEMP_DIR'], code, image), code_dir)
+                                copy2(xml_file_path, code_dir)
+                                self.status = True
+                                self.message = "Object added successfully"
+
+                            else:
+                                self.data['invalid_xml'].append(image)
+
+                        else:
+                            self.data['rejected_resources'].append(image)
+
+            else:
+                self.message = Dic.Api.INVALID_INPUT
+                self.status = False
+        else:
+            self.message = Dic.Api.INVALID_PARAM
+            self.status = False
+
+        return self._get_result()
+
+    def download_file(self, url, save_path):
+        # NOTE the stream=True parameter below
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(save_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=128):
+                    if chunk:  # filter out keep-alive new chunks
+                        f.write(chunk)
+
+    def delete(self):
+        code = request.values.get('code')
+        if code is not None:
+
+            code_dir = os.path.join(app.config["DATA_DIR"], code)
+            if os.path.isdir(code_dir):
+                for file in os.listdir(code_dir):
+                    os.remove(os.path.join(code_dir, file))
+
+                self.message = 'Object %s removed.' % code
+                self.status = True
+
+            else:
+                self.message = ' %s not found.'
+                self.status = False
+        else:
+            self.message = Dic.Api.INVALID_PARAM
+            self.status = False
+
+        return self._get_result()
+
+
+

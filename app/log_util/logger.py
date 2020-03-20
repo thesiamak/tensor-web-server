@@ -8,7 +8,6 @@ class Logger:
     _file_path = 'logs/'
 
     def __init__(self, base_path, target='system'):
-        print(base_path + self._file_path + target + '.txt')
         self._file_path = os.path.join(base_path, self._file_path, target + '.txt')
 
     def _open_file(self):

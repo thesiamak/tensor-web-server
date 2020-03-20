@@ -65,3 +65,29 @@ def download(dir_name, filename):
 
     else:
         return Dic.Api.NOT_AUTHENTICATED
+
+
+@app.route('/trainer/data', methods=["GET", "POST", "DELETE"])
+@logger
+def data():
+    if request.method == "DELETE":
+        if Authentication.Auth(Authentication.ROLE.ADMIN).is_authenticated():
+            return Util.Data().delete()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    elif request.method == "POST":
+        if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
+            return Util.Data().post()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    elif request.method == "GET":
+        if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
+            return Util.Data().get()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    else:
+        return Dic.Api.NOT_FOUND
+
