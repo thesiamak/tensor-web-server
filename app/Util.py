@@ -13,6 +13,7 @@ from app import Dictionary as Dic
 from app import app
 from flask import request, send_from_directory
 from datetime import datetime
+from pathlib import Path
 
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, '/home/siamak/PycharmProjects/tensor3')
@@ -74,6 +75,19 @@ class Train(BaseApi):
 
 class Status(BaseApi):
 
+    def _get_size(start_path):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                # skip if it is symbolic link
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+
+        size_in_MB = total_size / 1048576
+        print(size_in_MB, 'size:')
+        return str(total_size)
+
     def generate_status(self):
 
         'Generate a report around recent activities and status aof the system.'
@@ -86,7 +100,15 @@ class Status(BaseApi):
         # total tests done so far
         # total trainings done
         # active state
-        self.data["status"] = {"state": "idle", "total_queries": log_details[2], "total_trainings": log_details[1]}
+        web_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'ODPyWS')).glob('**/*') if f.is_file()) / 1048576))
+
+        temp_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'ODPyWS/res/tmp')).glob('**/*') if f.is_file()) / 1048576))
+
+        detector_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor3')).glob('**/*') if f.is_file()) / 1048576))
+
+        self.data["status"] = {"state": "idle", "total_queries": log_details[2], "total_trainings": log_details[1],
+                               'server_package_size': web_pack_size, 'detecotr_packege_size': detector_pack_size,
+                               'temp_resource_size': temp_pack_size}
 
         self.message = "Details generated successfully"
         self.status = True
@@ -147,7 +169,7 @@ class Data(BaseApi):
                         file = os.path.join(app.config['DATA_DIR'], code, file)
                         zipObj2.write(file)
 
-                return send_from_directory(directory=zip_file_path, filename=code+'.zip')
+                return send_from_directory(directory=zip_file_path, filename=code + '.zip')
 
             else:
                 self.message = Dic.Api.NOT_FOUND_RESOURCE
@@ -187,7 +209,8 @@ class Data(BaseApi):
                     if os.path.splitext(image)[1] == '.jpg':
                         height, width, channel = cv2.imread(os.path.join(app.config['TEMP_DIR'], code, image)).shape
                         if height > 300 and width > 300:
-                            xml_file_path = os.path.join(app.config['TEMP_DIR'], code, os.path.splitext(image)[0] + '.xml')
+                            xml_file_path = os.path.join(app.config['TEMP_DIR'], code,
+                                                         os.path.splitext(image)[0] + '.xml')
                             if os.path.isfile(xml_file_path):
                                 copy2(os.path.join(app.config['TEMP_DIR'], code, image), code_dir)
                                 copy2(xml_file_path, code_dir)
@@ -239,6 +262,3 @@ class Data(BaseApi):
             self.status = False
 
         return self._get_result()
-
-
-
