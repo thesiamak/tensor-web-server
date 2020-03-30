@@ -101,7 +101,7 @@ class Detection:
             min_score_thresh=0.60)
 
         image_name = self.PATH_TO_IMAGE.split('/')[len(self.PATH_TO_IMAGE.split('/')) - 1]
-        result_image_path = BasePath + "ODPyWS/" + self.PATH_TO_IMAGE[:self.PATH_TO_IMAGE.index(image_name)]
+        result_image_path = BasePath + "tensor-web-server/" + self.PATH_TO_IMAGE[:self.PATH_TO_IMAGE.index(image_name)]
         image_name = result_image_path + "result_" + image_name
         cv2.imwrite(image_name, image)
 

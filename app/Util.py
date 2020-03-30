@@ -14,7 +14,8 @@ from app import Dictionary as Dic
 from app import app
 
 # insert at 1, 0 is the script path (or '' in REPL)
-sys.path.insert(1, '/home/siamak/PycharmProjects/tensor3')
+detection_path = '/home/ubuntu/green/tensor_detection'
+sys.path.insert(1, detection_path)
 # noinspection PyUnresolvedReferences
 #import initiator
 #from .Object_detection_image import Detection
@@ -99,11 +100,11 @@ class Status(BaseApi):
         # total tests done so far
         # total trainings done
         # active state
-        web_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'ODPyWS')).glob('**/*') if f.is_file()) / 1048576))
+        web_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor-web-server')).glob('**/*') if f.is_file()) / 1048576))
 
-        temp_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'ODPyWS/res/tmp')).glob('**/*') if f.is_file()) / 1048576))
+        temp_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor-web-server/res/tmp')).glob('**/*') if f.is_file()) / 1048576))
 
-        detector_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor3')).glob('**/*') if f.is_file()) / 1048576))
+        detector_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor_detection')).glob('**/*') if f.is_file()) / 1048576))
 
         self.data["status"] = {"state": "idle", "total_queries": log_details[2], "total_trainings": log_details[1],
                                'server_package_size': web_pack_size, 'detecotr_packege_size': detector_pack_size,
@@ -133,7 +134,7 @@ class Status(BaseApi):
             json.append({l_file.split(".")[0]: query_log_lines})
 
         training_log_lines = []
-        tlist = list(open(os.getcwd() + '/../tensor3/logs/training_logs.txt', "r"))
+        tlist = list(open(detection_path + '/logs/training_logs.txt', "r"))
         index = 1
         while index < len(tlist):
             training_log_lines.append(tlist[len(tlist) - index])

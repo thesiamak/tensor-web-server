@@ -3,7 +3,7 @@ from flask import Flask
 from app import log_util as log
 
 app = Flask(__name__)
-app.config['PROJECT_DIR'] = '/home/siamak/PycharmProjects/'
+app.config['PROJECT_DIR'] = '/home/ubuntu/green/tensor-web-server/'
 app.config['RESOURCE_DIR'] = 'res'
 app.config['DATA_DIR'] = 'res/images'
 app.config['TEMP_DIR'] = 'res/tmp'
