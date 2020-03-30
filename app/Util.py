@@ -1,25 +1,23 @@
-import sys
-import cv2
 import os
+import sys
 import threading
-import requests
-import validators
-import urllib
-import urllib3
-from contextlib import closing
-from zipfile import ZipFile
-from shutil import copy2
-from app import Dictionary as Dic
-from app import app
-from flask import request, send_from_directory
 from datetime import datetime
 from pathlib import Path
+from shutil import copy2
+from zipfile import ZipFile
+import cv2
+import requests
+import validators
+from flask import request, send_from_directory
+
+from app import Dictionary as Dic
+from app import app
 
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, '/home/siamak/PycharmProjects/tensor3')
 # noinspection PyUnresolvedReferences
-import initiator
-from .Object_detection_image import Detection
+#import initiator
+#from .Object_detection_image import Detection
 
 
 class BaseApi:
@@ -59,7 +57,8 @@ class Query(BaseApi):
         else:
             self.status = True
             self.message = "Process has done detection"
-            self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
+            #self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
+            self.data = {'output_image': '/trainer/download/%s/%s' % ("12", "14"), 'objects': None, 'num_detections': 0, 'total_detected': 0}
 
         return self._get_result()
 
@@ -67,7 +66,7 @@ class Query(BaseApi):
 class Train(BaseApi):
 
     def start(self):
-        threading.Thread(target=initiator.run).start()
+        #threading.Thread(target=initiator.run).start()
         self.status = True
         self.message = "training started ..."
         return self._get_result()

@@ -12,7 +12,7 @@ class Detection:
     # Path to image
     PATH_TO_IMAGE = ""
 
-    # Number of classes the object detector can identify
+    # Number of classes the object detector can identify: Default is 2
     NUM_CLASSES = 2
 
     def __init__(self, image_path, number_of_classes):
