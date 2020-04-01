@@ -43,7 +43,5 @@ class Auth:
         for user in self._USERS:
             if user.is_equal(stranger) and user.role <= self._min_authorized_role:
                 return True
-            else:
-                return False
 
         return False
