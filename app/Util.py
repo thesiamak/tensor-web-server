@@ -14,11 +14,11 @@ from app import Dictionary as Dic
 from app import app
 
 # insert at 1, 0 is the script path (or '' in REPL)
-detection_path = '/home/ubuntu/green/tensor_detection'
+detection_path = '/home/ubuntu/green/tensor-detection'
 sys.path.insert(1, detection_path)
 # noinspection PyUnresolvedReferences
-#import initiator
-#from .Object_detection_image import Detection
+import initiator
+from .Object_detection_image import Detection
 
 
 class BaseApi:
@@ -58,8 +58,7 @@ class Query(BaseApi):
         else:
             self.status = True
             self.message = "Process has done detection"
-            #self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
-            self.data = {'output_image': '/trainer/download/%s/%s' % ("12", "14"), 'objects': None, 'num_detections': 0, 'total_detected': 0}
+            self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
 
         return self._get_result()
 
@@ -67,7 +66,7 @@ class Query(BaseApi):
 class Train(BaseApi):
 
     def start(self):
-        #threading.Thread(target=initiator.run).start()
+        threading.Thread(target=initiator.run).start()
         self.status = True
         self.message = "training started ..."
         return self._get_result()
@@ -104,7 +103,7 @@ class Status(BaseApi):
 
         temp_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor-web-server/res/tmp')).glob('**/*') if f.is_file()) / 1048576))
 
-        detector_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor_detection')).glob('**/*') if f.is_file()) / 1048576))
+        detector_pack_size = "%s MB" % str(int(sum(f.stat().st_size for f in Path(os.path.join(app.config['PROJECT_DIR'], 'tensor-detection')).glob('**/*') if f.is_file()) / 1048576))
 
         self.data["status"] = {"state": "idle", "total_queries": log_details[2], "total_trainings": log_details[1],
                                'server_package_size': web_pack_size, 'detecotr_packege_size': detector_pack_size,

@@ -25,13 +25,13 @@ class Detection:
         # Name of the directory containing the object detection module we're using
 
         # Grab path to current working directory
-        BasePath = '/home/siamak/PycharmProjects/'
+        BasePath = '/home/ubuntu/green/'
         # Path to frozen detection graph .pb file, which contains the model that is used
         # for object detection.
-        PATH_TO_CKPT = BasePath + "tensor_detection/res/inference_graph/frozen_inference_graph.pb"
+        PATH_TO_CKPT = BasePath + "tensor-detection/res/inference_graph/frozen_inference_graph.pb"
 
         # Path to label map file
-        PATH_TO_LABELS = BasePath + "tensor_detection/res/training/labelmap.pbtxt"
+        PATH_TO_LABELS = BasePath + "tensor-detection/res/training/labelmap.pbtxt"
 
         # Load the label map.
         # Label maps map indices to category names, so that when our convolution

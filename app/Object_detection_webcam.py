@@ -39,10 +39,10 @@ CWD_PATH = os.getcwd()
 
 # Path to frozen detection graph .pb file, which contains the model that is used
 # for object detection.
-PATH_TO_CKPT = "/home/siamak/PycharmProjects/tensor_detection/res/inference_graph/frozen_inference_graph.pb"
+PATH_TO_CKPT = "/home/siamak/PycharmProjects/tensor-detection/res/inference_graph/frozen_inference_graph.pb"
 
 # Path to label map file
-PATH_TO_LABELS = "/home/siamak/PycharmProjects/tensor_detection/res/training/labelmap.pbtxt"
+PATH_TO_LABELS = "/home/siamak/PycharmProjects/tensor-detection/res/training/labelmap.pbtxt"
 
 # Number of classes the object detector can identify
 NUM_CLASSES = 6
