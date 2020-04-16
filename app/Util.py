@@ -14,6 +14,8 @@ from app import app
 from flask import request, send_from_directory
 from datetime import datetime
 from pathlib import Path
+from app import SpecieDb
+from app import db
 
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, '/home/siamak/PycharmProjects/tensor3')
@@ -152,6 +154,28 @@ class Status(BaseApi):
             if start == -1: return
             yield start
             start += len(sub)  # use start += 1 to find overlapping matches
+
+
+class Specie(BaseApi):
+
+    def add(self):
+        code = request.args.get("code")
+        data = request.args.get("data")
+        schema = request.args.get("schema")
+        newSpecie = SpecieDb.SpecieDb(code, data, schema)
+
+        return self._get_result()
+
+    def get(self):
+        self.data['data', SpecieDb.SpecieDb.query.all()]
+        return self._get_result()
+
+    def delete(self):
+        return self._get_result()
+
+    def edit(self):
+        return self._get_result()
+
 
 
 class Data(BaseApi):
