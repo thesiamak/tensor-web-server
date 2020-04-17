@@ -5,7 +5,7 @@ import tensorflow as tf
 # Import utilites
 from .utils import label_map_util
 from .utils import visualization_utils as vis_util
-
+from app.models.SpecieDb import SpecieDb
 
 class Detection:
 
@@ -16,7 +16,6 @@ class Detection:
     NUM_CLASSES = 2
 
     def __init__(self, image_path, number_of_classes):
-        print(image_path, number_of_classes)
         self.PATH_TO_IMAGE = image_path
         self.NUM_CLASSES = number_of_classes
         pass
@@ -88,7 +87,12 @@ class Detection:
         # Draw the results of the detection (aka 'visulaize the results')
         for index in range(3):
             if scores[0][index] > 0.5 or len(results) < 3:
-                results.append({'name': category_index[classes[0][index]]['name'], 'confidence': int(scores[0][index] * 100)})
+
+                item_object = SpecieDb.query.filter_by(code=category_index[classes[0][index]]['name']).first()
+                if item_object:
+                    results.append({'name': item_object.serialize(), 'confidence': int(scores[0][index] * 100)})
+                else:
+                    results.append({'name': category_index[classes[0][index]]['name'], 'confidence': int(scores[0][index] * 100)})
 
         vis_util.visualize_boxes_and_labels_on_image_array(
             image,

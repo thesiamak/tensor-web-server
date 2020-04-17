@@ -40,6 +40,7 @@ class Auth:
         username = request.args.get("username")
         password = request.args.get("password")
         stranger = User(username, password)
+
         for user in self._USERS:
             if user.is_equal(stranger) and user.role <= self._min_authorized_role:
                 return True

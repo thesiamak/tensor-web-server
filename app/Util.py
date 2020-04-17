@@ -1,17 +1,19 @@
-import os
 import sys
-import threading
-from datetime import datetime
-from pathlib import Path
-from shutil import copy2
-from zipfile import ZipFile
 import cv2
+import os
+import threading
 import requests
 import validators
-from flask import request, send_from_directory
-
+import urllib
+import urllib3
+from contextlib import closing
+from zipfile import ZipFile
+from shutil import copy2
 from app import Dictionary as Dic
 from app import app
+from flask import request, send_from_directory
+from datetime import datetime
+from pathlib import Path
 
 # insert at 1, 0 is the script path (or '' in REPL)
 detection_path = '/home/ubuntu/green/tensor-detection'
@@ -26,6 +28,13 @@ class BaseApi:
     status = False
     message = ""
 
+    def __init__(self) -> None:
+        self.data = {}
+        self.status = False
+        self.message = ""
+
+        super().__init__()
+
     def _get_result(self):
         return {'status': self.status, 'message': self.message, 'data': self.data}
 
@@ -35,6 +44,7 @@ class Query(BaseApi):
 
     def __init__(self):
         'download image to temp folder'
+        super().__init__()
         url = request.args.get("img_url")
         if url is not None:
             validation = validators.url(url)
@@ -58,8 +68,7 @@ class Query(BaseApi):
         else:
             self.status = True
             self.message = "Process has done detection"
-            #self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
-            self.data = {'output_image': '/trainer/download/%s/%s' % ("12", "14"), 'objects': None, 'num_detections': 0, 'total_detected': 0}
+            self.data = Detection(self.target_file_path, len(os.listdir('res/images'))).detect()
 
         return self._get_result()
 
@@ -154,6 +163,94 @@ class Status(BaseApi):
             start += len(sub)  # use start += 1 to find overlapping matches
 
 
+class Specie(BaseApi):
+
+    def add(self):
+        code = request.values.get("code")
+        code_name = request.values.get("code_name")
+        data = request.values.get("data")
+        schema = request.values.get("schema")
+        if SpecieDb.SpecieDb.query.filter_by(code=code).first():
+            self.message = Dic.Api.DUPLICATE_RECORD
+            self.status = False
+
+        else:
+            new_specie = SpecieDb.SpecieDb(code, code_name, data, schema)
+            db.session.add(new_specie)
+            db.session.commit()
+            record = SpecieDb.SpecieDb.query.filter_by(code=code).first()
+            self.data = record.serialize()
+            self.message = Dic.Api.DONE
+            self.status = True
+
+        return self._get_result()
+
+    def get(self):
+        code = request.args.get("code")
+
+        self.data["items"] = []
+        if code:
+            record = SpecieDb.SpecieDb.query.filter_by(code=code).first()
+            if record:
+                self.data = record.serialize()
+                self.message = Dic.Api.DONE
+                self.status = True
+            else:
+                self.message = Dic.Api.INVALID_INPUT
+                self.status = False
+
+        else:
+            for item in SpecieDb.SpecieDb.query.all():
+                self.data["items"].append(item.serialize())
+                self.message = Dic.Api.DONE
+                self.status = True
+
+        return self._get_result()
+
+    def delete(self):
+        code = request.values.get("code")
+        if code:
+            record = SpecieDb.SpecieDb.query.filter_by(code=code).first()
+            if record:
+                db.session.delete(record)
+                db.session.commit()
+                self.message = Dic.Api.DONE
+                self.status = True
+
+            else:
+                self.message = Dic.Api.INVALID_INPUT
+                self.status = False
+
+        else:
+            self.message = Dic.Api.INVALID_PARAM
+            self.status = False
+
+        return self._get_result()
+
+    def edit(self):
+        target_code = request.values.get("target_code")
+        code = request.values.get("code")
+        code_name = request.values.get("code_name")
+        data = request.values.get("data")
+        schema = request.values.get("schema")
+        if code and code_name and target_code and schema and data:
+            record = SpecieDb.SpecieDb.query.filter_by(code=target_code).first()
+            if record:
+                record.update(code, code_name, data, schema)
+                db.session.commit()
+                self.message = Dic.Api.DONE
+                self.status = True
+
+            else:
+                self.message = Dic.Api.INVALID_INPUT
+                self.status = False
+
+        else:
+            self.message = Dic.Api.INVALID_PARAM
+            self.status = False
+        return self._get_result()
+
+
 class Data(BaseApi):
     def get(self):
         code = request.args.get("code")
@@ -183,10 +280,10 @@ class Data(BaseApi):
     def post(self):
         # download zip
         file_url = request.values.get('zip_url')
-        code = request.values.get('code')
+        item_id = request.values.get('id')
 
-        if file_url is not None and code is not None:
-            code_dir = os.path.join(app.config['DATA_DIR'], code)
+        if file_url is not None and item_id is not None:
+            code_dir = os.path.join(app.config['DATA_DIR'], item_id)
             self.data['rejected_resources'] = []
             self.data['invalid_xml'] = []
             validation = validators.url(file_url)
@@ -198,21 +295,21 @@ class Data(BaseApi):
 
                 # unzip
                 with ZipFile(file_path, 'r') as zip_ref:
-                    zip_ref.extractall(app.config["TEMP_DIR"])
+                    zip_ref.extractall(app.config["TEMP_DIR"]+"/" + item_id)
 
                 # make dir in images
 
                 if not os.path.isdir(code_dir):
                     os.mkdir(code_dir)
-                for image in os.listdir(os.path.join(app.config['TEMP_DIR'], code)):
+                for image in os.listdir(os.path.join(app.config['TEMP_DIR'], item_id)):
                     # check files and copy
                     if os.path.splitext(image)[1] == '.jpg':
-                        height, width, channel = cv2.imread(os.path.join(app.config['TEMP_DIR'], code, image)).shape
+                        height, width, channel = cv2.imread(os.path.join(app.config['TEMP_DIR'], item_id, image)).shape
                         if height > 300 and width > 300:
-                            xml_file_path = os.path.join(app.config['TEMP_DIR'], code,
+                            xml_file_path = os.path.join(app.config['TEMP_DIR'], item_id,
                                                          os.path.splitext(image)[0] + '.xml')
                             if os.path.isfile(xml_file_path):
-                                copy2(os.path.join(app.config['TEMP_DIR'], code, image), code_dir)
+                                copy2(os.path.join(app.config['TEMP_DIR'], item_id, image), code_dir)
                                 copy2(xml_file_path, code_dir)
                                 self.status = True
                                 self.message = "Object added successfully"

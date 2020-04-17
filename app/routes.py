@@ -91,3 +91,34 @@ def data():
     else:
         return Dic.Api.NOT_FOUND
 
+
+@app.route('/plants', methods=["GET", "POST", "DELETE", "PUT"])
+@logger
+def plants():
+    if request.method == "DELETE":
+        if Authentication.Auth(Authentication.ROLE.ADMIN).is_authenticated():
+            return Util.Specie().delete()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    elif request.method == "POST":
+        if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
+            return Util.Specie().add()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    elif request.method == "GET":
+        if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
+            return Util.Specie().get()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    elif request.method == "PUT":
+        if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
+            return Util.Specie().edit()
+        else:
+            return Dic.Api.NOT_AUTHENTICATED
+
+    else:
+        return Dic.Api.NOT_FOUND
+
