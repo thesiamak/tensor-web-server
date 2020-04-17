@@ -21,7 +21,7 @@ sys.path.insert(1, detection_path)
 # noinspection PyUnresolvedReferences
 import initiator
 from .Object_detection_image import Detection
-
+from app import db, SpecieDb
 
 class BaseApi:
     data = {}
