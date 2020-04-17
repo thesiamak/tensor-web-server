@@ -11,4 +11,5 @@ db = SQLAlchemy(app)
 from app.models import SpecieDb
 from app import routes
 log.init_logger(os.path.dirname(app.instance_path))
+# db.drop_all()
 db.create_all()
