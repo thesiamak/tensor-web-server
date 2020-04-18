@@ -40,6 +40,17 @@ def train():
         return Dic.Api.NOT_AUTHENTICATED
 
 
+@app.route('/trainer/train/update')
+@logger
+def update_trainer():
+    if Authentication.Auth(Authentication.ROLE.ADMIN).is_authenticated():
+        return Util.Train().update()
+
+    else:
+        return Dic.Api.NOT_AUTHENTICATED
+
+
+
 @app.route('/trainer/query')
 @logger
 def query():

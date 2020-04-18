@@ -76,6 +76,13 @@ class Query(BaseApi):
 
 class Train(BaseApi):
 
+   def update(self):
+        threading.Thread(target=initiator.start_inferencing).start()
+        self.status = True
+        self.message = "Graphs generation ordered ..."
+        return self._get_result()
+
+
     def start(self):
         threading.Thread(target=initiator.run).start()
         self.status = True
