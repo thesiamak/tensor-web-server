@@ -73,7 +73,6 @@ class Query(BaseApi):
         return self._get_result()
 
 
-
 class Train(BaseApi):
 
     def update(self):
@@ -81,7 +80,6 @@ class Train(BaseApi):
         self.status = True
         self.message = "Graphs generation ordered ..."
         return self._get_result()
-
 
     def start(self):
         threading.Thread(target=initiator.run).start()
@@ -145,7 +143,7 @@ class Status(BaseApi):
             query_log_lines = []
             mlist = list(open(os.path.join(os.getcwd(), 'logs', l_file), "r"))
             index = 1
-            while index < len(mlist):
+            while index < len(mlist) and index < 80:  # Maximum 80 lines of logs
                 query_log_lines.append(mlist[len(mlist) - index])
                 index += 1
             json.append({l_file.split(".")[0]: query_log_lines})
@@ -303,7 +301,7 @@ class Data(BaseApi):
 
                 # unzip
                 with ZipFile(file_path, 'r') as zip_ref:
-                    zip_ref.extractall(app.config["TEMP_DIR"]+"/" + item_id)
+                    zip_ref.extractall(app.config["TEMP_DIR"] + "/" + item_id)
 
                 # make dir in images
 

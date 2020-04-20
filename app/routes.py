@@ -10,7 +10,6 @@ def own_404_page(error):
 
 
 @app.route('/')
-@logger
 def root():
     if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
         return "You are in the root page of the Trainer app .\nYou might have been redirected(404 Error) here," \
@@ -63,18 +62,14 @@ def query():
 @app.route('/trainer/download/<dir_name>/<sub_dir_name>/<filename>')
 @logger
 def download(dir_name, sub_dir_name, filename):
-    if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
-        if len(filename) > 4 and len(filename.split('.')) > 0 and len(dir_name) > 4 and len(sub_dir_name) > 4:
-            path = os.path.join(os.path.dirname(app.instance_path), app.config['RESOURCE_DIR'], dir_name, sub_dir_name)
-            if os.path.isfile(path + '/' + filename):
-                return send_from_directory(directory=path, filename=filename)
-            else:
-                return Dic.Api.NOT_FOUND_RESOURCE
+    if len(filename) > 4 and len(filename.split('.')) > 0 and len(dir_name) > 4 and len(sub_dir_name) > 4:
+        path = os.path.join(os.path.dirname(app.instance_path), app.config['RESOURCE_DIR'], dir_name, sub_dir_name)
+        if os.path.isfile(path + '/' + filename):
+            return send_from_directory(directory=path, filename=filename)
         else:
-            return Dic.Api.NOT_FOUND
-
+            return Dic.Api.NOT_FOUND_RESOURCE
     else:
-        return Dic.Api.NOT_AUTHENTICATED
+        return Dic.Api.NOT_FOUND
 
 
 @app.route('/trainer/data', methods=["GET", "POST", "DELETE"])
