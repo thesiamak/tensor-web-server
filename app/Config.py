@@ -26,7 +26,7 @@ class Config(object):
     QUERY_DIR = 'queries'
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SERVER = get_ip()+":8080"
+    SERVER = "http://" + get_ip() + ":8080"
 
 
 class ProductionConfig(Config):

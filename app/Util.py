@@ -185,7 +185,8 @@ class Specie(BaseApi):
             db.session.add(new_specie)
             db.session.commit()
             record = SpecieDb.SpecieDb.query.filter_by(code=code).first()
-            self.data = record.serialize()
+            self.data["plant"] = record.serialize()
+            self.data["base_url"] = app.config["SERVER"]
             self.message = Dic.Api.DONE
             self.status = True
 
@@ -193,7 +194,7 @@ class Specie(BaseApi):
 
     def get(self):
         code = request.args.get("code")
-
+        self.data["base_url"] = app.config["SERVER"]
         self.data["items"] = []
         if code:
             record = SpecieDb.SpecieDb.query.filter_by(code=code).first()
