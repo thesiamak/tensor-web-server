@@ -50,7 +50,6 @@ def update_trainer():
         return Dic.Api.NOT_AUTHENTICATED
 
 
-
 @app.route('/trainer/query')
 @logger
 def query():
@@ -61,12 +60,12 @@ def query():
         return Dic.Api.NOT_AUTHENTICATED
 
 
-@app.route('/trainer/download/<dir_name>/<filename>')
+@app.route('/trainer/download/<dir_name>/<sub_dir_name>/<filename>')
 @logger
-def download(dir_name, filename):
+def download(dir_name, sub_dir_name, filename):
     if Authentication.Auth(Authentication.ROLE.USER).is_authenticated():
-        if len(filename) > 4 and len(filename.split('.')) > 0 and len(dir_name) == 10:
-            path = os.path.join(os.path.dirname(app.instance_path), app.config['RESOURCE_DIR'], app.config['QUERY_DIR'], dir_name)
+        if len(filename) > 4 and len(filename.split('.')) > 0 and len(dir_name) > 4 and len(sub_dir_name) > 4:
+            path = os.path.join(os.path.dirname(app.instance_path), app.config['RESOURCE_DIR'], dir_name, sub_dir_name)
             if os.path.isfile(path + '/' + filename):
                 return send_from_directory(directory=path, filename=filename)
             else:
@@ -132,4 +131,3 @@ def plants():
 
     else:
         return Dic.Api.NOT_FOUND
-

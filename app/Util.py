@@ -73,9 +73,10 @@ class Query(BaseApi):
         return self._get_result()
 
 
+
 class Train(BaseApi):
 
-   def update(self):
+    def update(self):
         threading.Thread(target=initiator.start_inferencing).start()
         self.status = True
         self.message = "Graphs generation ordered ..."
@@ -240,7 +241,7 @@ class Specie(BaseApi):
         code_name = request.values.get("code_name")
         data = request.values.get("data")
         schema = request.values.get("schema")
-        if code and code_name and target_code and schema and data:
+        if target_code:
             record = SpecieDb.SpecieDb.query.filter_by(code=target_code).first()
             if record:
                 record.update(code, code_name, data, schema)
