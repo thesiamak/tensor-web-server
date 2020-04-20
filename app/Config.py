@@ -19,7 +19,7 @@ def get_ip():
 
 class Config(object):
     DEBUG = True
-    PROJECT_DIR = '/home/siamak/PycharmProjects/'
+    PROJECT_DIR = '/home/ubuntu/green/'
     RESOURCE_DIR = 'res'
     DATA_DIR = 'res/images'
     TEMP_DIR = 'res/tmp'
