@@ -111,5 +111,5 @@ class Detection:
 
         path_array = image_name.split('/')
 
-        return {'output_image': Config.SERVER + '/trainer/download/query/%s/%s' % (path_array[len(path_array)-2], path_array[len(path_array)-1]),
+        return {'output_image': Config.SERVER + '/trainer/download/queries/%s/%s' % (path_array[len(path_array)-2], path_array[len(path_array)-1]),
                 'objects': results, 'num_detections': len(results), 'total_detected': int(num[0])}
