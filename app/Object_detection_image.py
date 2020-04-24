@@ -85,8 +85,8 @@ class Detection:
             feed_dict={image_tensor: image_expanded})
 
         # Draw the results of the detection (aka 'visulaize the results')
-        for index in range(3):
-            if scores[0][index] > 0.5 or len(results) < 3:
+        for index in range(9):
+            if scores[0][index] > 0.5 or len(results) < 9:
 
                 item_object = SpecieDb.query.filter_by(code=category_index[classes[0][index]]['name']).first()
                 if item_object:
