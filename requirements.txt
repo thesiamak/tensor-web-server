@@ -139,7 +139,7 @@ traitlets==4.3.3
 twine==3.1.1
 ubuntu-drivers-common==0.0.0
 ufw==0.36
-urllib3==1.25.8
+urllib3==1.26.5
 validators==0.14.2
 waitress==1.4.3
 wcwidth==0.1.8
