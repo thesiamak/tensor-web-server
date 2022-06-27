@@ -111,7 +111,7 @@ pyzmq==19.0.0
 qtconsole==4.7.1
 QtPy==1.9.0
 readme-renderer==24.0
-reportlab==3.4.0
+reportlab==3.5.55
 requests==2.23.0
 requests-toolbelt==0.9.1
 requests-unixsocket==0.1.5
